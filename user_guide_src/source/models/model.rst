@@ -14,7 +14,7 @@ instance of the database connection and you're good to go.
 
 ::
 
-        <?php namespace App\Models;
+    <?php namespace App\Models;
 
 	use CodeIgniter\Database\ConnectionInterface;
 
@@ -70,9 +70,9 @@ This ensures that within the model any references to ``$this->db`` are made thro
 connection.
 ::
 
-         <?php namespace App\Models;
+    <?php namespace App\Models;
 
-       use CodeIgniter\Model;
+    use CodeIgniter\Model;
 
 	class UserModel extends Model
 	{
@@ -104,6 +104,8 @@ what table to use and how we can find the required records::
 		protected $allowedFields = ['name', 'email'];
 
 		protected $useTimestamps = false;
+		protected $createdField  = 'created_at';
+		protected $updatedField  = 'updated_at';
 
 		protected $validationRules    = [];
 		protected $validationMessages = [];
@@ -121,6 +123,9 @@ queries.
 This is the name of the column that uniquely identifies the records in this table. This
 does not necessarily have to match the primary key that is specified in the database, but
 is used with methods like ``find()`` to know what column to match the specified value to.
+
+.. note:: All Models must have a primaryKey specified to allow all of the features to work
+    as expected.
 
 **$returnType**
 
@@ -153,6 +158,16 @@ This boolean value determines whether the current date is automatically added to
 and updates. If true, will set the current time in the format specified by $dateFormat. This
 requires that the table have columns named 'created_at' and 'updated_at' in the appropriate
 data type.
+
+**$createdField**
+
+Specifies which database field should use for keep data record create timestamp.
+Leave it empty to avoid update it (even useTimestamps is enabled)
+
+**$updatedField**
+
+Specifies which database field should use for keep data record update timestamp.
+Leave it empty to avoid update it (even useTimestamps is enabled)
 
 **$dateFormat**
 
@@ -212,6 +227,14 @@ of just one::
 
 If no parameters are passed in, will return all rows in that model's table, effectively acting
 like findAll(), though less explicit.
+
+**findColumn()**
+
+ Returns null or an indexed array of column values::
+
+ 	$user = $userModel->findColumn($column_name);
+
+ $column_name should be a name of single column else you will get the DataException.
 
 **findAll()**
 
@@ -441,6 +464,39 @@ be applied. If you have custom error message that you want to use, place them in
 			]
 		];
 	}
+
+The other way to set the validation message to fields by functions,
+
+.. php:function:: setValidationMessage($field, $fieldMessages)
+
+	:param	string	$field
+	:param	array	$fieldMessages
+
+	This function will set the field wise error messages.
+
+	Usage example::
+
+            $fieldName = 'name';
+            $fieldValidationMessage = array(
+                            'required'   => 'Your name is required here',
+                    );
+            $model->setValidationMessage($fieldName, $fieldValidationMessage);
+
+.. php:function:: setValidationMessages($fieldMessages)
+
+	:param	array	$fieldMessages
+
+	This function will set the field messages.
+
+	Usage example::
+
+            $fieldValidationMessage = array(
+                    'name' => array(
+                            'required'   => 'Your baby name is missing.',
+                            'min_length' => 'Too short, man!',
+                    ),
+            );
+            $model->setValidationMessages($fieldValidationMessage);
 
 Now, whenever you call the ``insert()``, ``update()``, or ``save()`` methods, the data will be validated. If it fails,
 the model will return boolean **false**. You can use the ``errors()`` method to retrieve the validation errors::
